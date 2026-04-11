@@ -1,0 +1,15 @@
+# WaterFlow - Water Tanker Delivery Platform
+# https://waterflow.in
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin
+Disallow: /captain
+Disallow: /captain/
+Disallow: /office/
+Disallow: /track/
+Disallow: /order
+Disallow: /onboarding
+
+Sitemap: https://waterflow.in/sitemap.xml

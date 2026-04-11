@@ -1,0 +1,209 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  CAPTAIN
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  ACCEPTED
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+enum AddressTag {
+  HOME
+  WORK
+  SOCIETY
+  OTHER
+}
+
+enum OfficeStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum MemberStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum CancelledBy {
+  CUSTOMER
+  CAPTAIN
+}
+
+// ── User ──────────────────────────────────────────────────────────────────────
+model User {
+  id            String    @id @default(uuid())
+  phoneNumber   String    @unique
+  name          String?
+  email         String?   @unique
+  aadhaarNumber String?
+  isVerified    Boolean   @default(false)
+  role          Role      @default(CUSTOMER)
+  passwordHash  String?
+
+  // Captain-specific
+  vehicleNumber   String?
+  isOnline        Boolean  @default(false)
+  tankerCapacity  Int?     @default(1000)
+  basePrice       Float?   @default(500)
+
+  // Legacy location (kept for backward compat, deprecated in favour of Office)
+  operationLat    Float?
+  operationLng    Float?
+  serviceRadiusKm Float?   @default(10)
+
+  bookingsAsCustomer Booking[]        @relation("CustomerBookings")
+  bookingsAsCaptain  Booking[]        @relation("CaptainBookings")
+  locationHistory    Location[]
+  addresses          SavedAddress[]
+  captainLocation    CaptainLocation?
+  officeMemberships  OfficeMember[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// ── Office (3NF — water depot / tanker base) ──────────────────────────────────
+model Office {
+  id              String       @id @default(uuid())
+  code            String       @unique      // short 4-digit code e.g. "4821"
+  name            String                    // "Sharma Water Supply"
+  phone           String                    // office contact number
+  ownerName       String?                   // owner's display name
+  address         String?
+  city            String       @default("Mumbai")
+  lat             Float
+  lng             Float
+  serviceRadiusKm Float        @default(10)
+  status          OfficeStatus @default(PENDING)
+  ownerId         String                    // captain who created it
+
+  // Analytics
+  viewCount       Int          @default(0)
+  callCount       Int          @default(0)
+
+  members         OfficeMember[]
+  bookings        Booking[]    @relation("OfficeBookings")
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([lat, lng])
+  @@index([code])
+  @@index([status])
+}
+
+// ── OfficeMember (captain ↔ office link) ──────────────────────────────────────
+model OfficeMember {
+  id         String       @id @default(uuid())
+  officeId   String
+  captainId  String
+  status     MemberStatus @default(PENDING)
+
+  office     Office       @relation(fields: [officeId], references: [id], onDelete: Cascade)
+  captain    User         @relation(fields: [captainId], references: [id], onDelete: Cascade)
+
+  joinedAt   DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@unique([officeId, captainId])
+  @@index([captainId])
+}
+
+// ── SavedAddress ──────────────────────────────────────────────────────────────
+model SavedAddress {
+  id          String     @id @default(uuid())
+  userId      String
+  tag         AddressTag @default(HOME)
+  label       String?
+  societyName String?
+  addressLine String?
+  city        String     @default("Mumbai")
+  pincode     String?
+  lat         Float
+  lng         Float
+  isDefault   Boolean    @default(false)
+
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+// ── Booking ───────────────────────────────────────────────────────────────────
+model Booking {
+  id             String        @id @default(uuid())
+  customerId     String
+  captainId      String?
+  officeId       String?
+  status         BookingStatus @default(PENDING)
+  price          Float
+  capacityLitres Int           @default(1000)
+
+  // Delivery address
+  dropoffLat     Float
+  dropoffLng     Float
+  societyName    String?
+  addressLine    String?
+  city           String?
+  addressTag     AddressTag?
+
+  // Cancellation
+  cancelledBy    CancelledBy?
+  cancelReason   String?
+  cancelledAt    DateTime?
+
+  customer       User          @relation("CustomerBookings", fields: [customerId], references: [id])
+  captain        User?         @relation("CaptainBookings", fields: [captainId], references: [id])
+  office         Office?       @relation("OfficeBookings", fields: [officeId], references: [id])
+
+  acceptedAt     DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([status])
+  @@index([captainId])
+  @@index([customerId])
+  @@index([officeId])
+}
+
+// ── Real-time captain position ────────────────────────────────────────────────
+model CaptainLocation {
+  id        String   @id @default(uuid())
+  captainId String   @unique
+  lat       Float
+  lng       Float
+  heading   Float?
+  updatedAt DateTime @updatedAt
+
+  captain   User     @relation(fields: [captainId], references: [id], onDelete: Cascade)
+
+  @@index([lat, lng])
+}
+
+// ── Sampled location history ──────────────────────────────────────────────────
+model Location {
+  id        String   @id @default(uuid())
+  userId    String
+  lat       Float
+  lng       Float
+  timestamp DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+  @@index([userId])
+}

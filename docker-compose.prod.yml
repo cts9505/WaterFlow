@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # ── Zookeeper ──────────────────────────────────────
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: wf_zookeeper
+    restart: unless-stopped
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  # ── Kafka ──────────────────────────────────────────
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: wf_kafka
+    restart: unless-stopped
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # This allows the Node server to connect internally via "kafka:9092"
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  # ── WaterFlow API Server ───────────────────────────
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: wf_server
+    restart: unless-stopped
+    depends_on:
+      - kafka
+    ports:
+      - "5001:5001"
+    environment:
+      NODE_ENV: production
+      PORT: 5001
+      # Inherit the NeonDB URL directly from the .env file!
+      DATABASE_URL: ${DATABASE_URL:?Must provide NeonDB DATABASE_URL in .env}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      CLIENT_URL: ${CLIENT_URL:-https://waterflow.in}
+      # Tell Node.js to connect to the Kafka container on the internal docker network
+      KAFKA_BROKER: kafka:9092
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:5001/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── Nginx Reverse Proxy ────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: wf_nginx
+    restart: unless-stopped
+    depends_on:
+      - server
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

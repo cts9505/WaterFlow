@@ -1,0 +1,204 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --blue: #1A56DB;
+  --blue-dark: #0F3EB8;
+  --blue-light: #EEF2FF;
+  --orange: #F97316;
+  --orange-dark: #EA6C0A;
+  --green: #16A34A;
+  --red: #DC2626;
+  --purple: #7C3AED;
+  --bg: #F0F2F5;
+  --surface: #FFFFFF;
+  --border: #E5E7EB;
+  --text: #111827;
+  --muted: #6B7280;
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 20px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  --nav-height: 60px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--surface);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ═══════════════════════════════════════
+   MOBILE FIRST — Full width by default
+   On larger screens, show centered shell
+   ═══════════════════════════════════════ */
+
+#root {
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  /* Mobile: no background color, app IS the page */
+  background: var(--surface);
+}
+
+.shell {
+  width: 100%;
+  max-width: 100%; /* Full width on mobile */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow-x: hidden;
+  background: var(--surface);
+}
+
+/* ── Desktop: show phone-like shell ──── */
+@media (min-width: 481px) {
+  #root {
+    background: #E5E7EB;
+    padding: 0;
+  }
+  .shell {
+    max-width: 430px;
+    box-shadow: 0 0 80px rgba(0,0,0,0.18);
+    border-left: 1px solid #D1D5DB;
+    border-right: 1px solid #D1D5DB;
+  }
+}
+
+/* ── Page Scroll ─────────────────────── */
+.page {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.page::-webkit-scrollbar { display: none; }
+
+/* ── Typography ──────────────────────── */
+h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.3px; }
+h2 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.2px; }
+h3 { font-size: 1.1rem; font-weight: 600; }
+p { line-height: 1.5; }
+
+/* ── Buttons ─────────────────────────── */
+.btn {
+  display: block; width: 100%; padding: 16px;
+  border: none; border-radius: var(--radius); cursor: pointer;
+  font-size: 1rem; font-weight: 600; transition: all 0.15s ease;
+  text-decoration: none; text-align: center;
+  -webkit-appearance: none;
+}
+.btn:active { transform: scale(0.98); }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+.btn-blue { background: var(--blue); color: white; box-shadow: 0 4px 12px rgba(26,86,219,0.3); }
+.btn-blue:hover:not(:disabled) { background: var(--blue-dark); }
+
+.btn-orange { background: var(--orange); color: white; box-shadow: 0 4px 12px rgba(249,115,22,0.3); }
+.btn-orange:hover:not(:disabled) { background: var(--orange-dark); }
+
+.btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text); }
+.btn-outline:hover { border-color: var(--blue); color: var(--blue); }
+
+.btn-ghost { background: transparent; color: var(--blue); border: none; font-weight: 600; width: auto; padding: 8px; }
+
+/* ── Inputs ──────────────────────────── */
+.input-group { display: flex; flex-direction: column; gap: 6px; }
+.input-group label { font-size: 0.875rem; font-weight: 600; color: var(--muted); }
+input, select, textarea {
+  width: 100%; padding: 14px 16px; border: 1.5px solid var(--border);
+  border-radius: var(--radius); font-size: 16px; /* 16px prevents iOS zoom */
+  font-family: inherit;
+  outline: none; background: #FAFAFA; transition: border 0.2s, box-shadow 0.2s;
+  -webkit-appearance: none;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--blue); background: white;
+  box-shadow: 0 0 0 3px rgba(26,86,219,0.08);
+}
+
+/* ── Cards ───────────────────────────── */
+.card {
+  background: var(--surface); border-radius: var(--radius);
+  border: 1px solid var(--border); padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+/* ── Status Badges ───────────────────── */
+.badge {
+  display: inline-block; padding: 3px 10px; border-radius: 20px;
+  font-size: 0.75rem; font-weight: 600;
+}
+.badge-green { background: #DCFCE7; color: #15803D; }
+.badge-orange { background: #FFF7ED; color: #C2410C; }
+.badge-blue { background: #EEF2FF; color: #1D4ED8; }
+.badge-red { background: #FEF2F2; color: #B91C1C; }
+
+/* ── Divider ─────────────────────────── */
+.divider { height: 8px; background: var(--bg); margin: 0 -16px; }
+
+/* ── Animations ──────────────────────── */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade { animation: fadeIn 0.3s ease-out; }
+.animate-slide { animation: slideUp 0.35s ease-out; }
+
+/* ── Leaflet overrides ───────────────── */
+.leaflet-container { font-family: inherit !important; }
+.leaflet-control-attribution { display: none !important; }
+
+/* ── Safe area for notched phones ────── */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .page { padding-bottom: env(safe-area-inset-bottom); }
+}
+
+/* ── Touch button feedback ───────────── */
+button, a { -webkit-tap-highlight-color: transparent; }
+button:active { opacity: 0.85; }
+
+/* ── Scrollbar hide for all browsers ─── */
+* { scrollbar-width: none; -ms-overflow-style: none; }
+*::-webkit-scrollbar { display: none; }
+
+/* ── Range Slider Firefox/Safari Fixes ─── */
+input[type=range] {
+  -webkit-appearance: none;
+  background: transparent;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: var(--blue);
+  cursor: pointer;
+  margin-top: -8px;
+}
+input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 4px;
+  cursor: pointer;
+  background: #D1D5DB;
+  border-radius: 4px;
+}
