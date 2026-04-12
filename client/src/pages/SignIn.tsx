@@ -97,9 +97,9 @@ export default function SignIn() {
 
           <div className="input-group">
             <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><MdPhone size={14} color="#6B7280" /> Mobile Number</label>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <span style={{ padding: '12px 10px', background: '#F3F4F6', borderRadius: '10px 0 0 10px', border: '1.5px solid #E5E7EB', borderRight: 'none', color: '#374151', fontSize: '0.9rem', fontWeight: 600 }}>+91</span>
-              <input placeholder="9876543210" value={phone} maxLength={10} onChange={e => setPhone(e.target.value.replace(/\D/g, ''))} style={{ borderRadius: '0 10px 10px 0', borderLeft: 'none', flex: 1 }} />
+            <div style={{ display: 'flex', alignItems: 'stretch' }}>
+              <span style={{ padding: '14px 16px', background: '#F3F4F6', borderRadius: '12px 0 0 12px', border: '1.5px solid #E5E7EB', borderRight: 'none', color: '#374151', fontSize: '1rem', fontWeight: 600, display: 'flex', alignItems: 'center' }}>+91</span>
+              <input placeholder="9876543210" value={phone} maxLength={10} onChange={e => setPhone(e.target.value.replace(/\D/g, ''))} style={{ borderRadius: '0 12px 12px 0', borderLeft: 'none', flex: 1 }} />
             </div>
             {errors.phoneNumber && <span style={{ color: '#DC2626', fontSize: '0.78rem' }}>{errors.phoneNumber}</span>}
           </div>

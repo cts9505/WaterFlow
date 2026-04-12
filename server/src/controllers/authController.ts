@@ -15,8 +15,8 @@ const setAuthCookie = (res: Response, user: any) => {
     { expiresIn: '7d' }
   );
   res.cookie('waterflow_token', token, {
-    httpOnly: true, sameSite: 'lax', maxAge: COOKIE_MAX_AGE,
-    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true, sameSite: 'none', maxAge: COOKIE_MAX_AGE,
+    secure: true,
   });
 };
 
