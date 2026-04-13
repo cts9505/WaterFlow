@@ -1,8 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
-const api = axios.create({ baseURL: API_BASE, withCredentials: true });
+import { api } from '../services/api';
 export { api };
 
 interface User { id: string; name: string; phoneNumber: string; email?: string; role: 'CUSTOMER' | 'CAPTAIN' | 'ADMIN'; isVerified: boolean; isOnline?: boolean; vehicleNumber?: string; serviceRadiusKm?: number; tankerCapacity?: number; basePrice?: number; operationLat?: number; operationLng?: number; addresses?: any[]; createdAt?: string; }
@@ -29,15 +28,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (phoneNumber: string, password: string, role?: string) => {
     const r = await api.post('/auth/login', { phoneNumber, password, role });
+    if (r.data.token) localStorage.setItem('waterflow_token', r.data.token);
     setUser(r.data.user);
   };
 
   const register = async (data: any) => {
     const r = await api.post('/auth/register', data);
+    if (r.data.token) localStorage.setItem('waterflow_token', r.data.token);
     setUser(r.data.user);
   };
 
-  const logout = async () => { await api.post('/auth/logout'); setUser(null); };
+  const logout = async () => { 
+    await api.post('/auth/logout'); 
+    localStorage.removeItem('waterflow_token');
+    setUser(null); 
+  };
 
   return <Ctx.Provider value={{ user, loading, login, register, logout, refresh }}>{children}</Ctx.Provider>;
 };

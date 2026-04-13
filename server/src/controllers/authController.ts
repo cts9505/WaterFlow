@@ -8,7 +8,7 @@ import { JWT_SECRET_KEY } from '../middleware/authMiddleware';
 const prisma = new PrismaClient();
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
-const setAuthCookie = (res: Response, user: any) => {
+const setAuthCookie = (res: Response, user: any): string => {
   const token = jwt.sign(
     { id: user.id, role: user.role, phoneNumber: user.phoneNumber },
     JWT_SECRET_KEY,
@@ -16,8 +16,9 @@ const setAuthCookie = (res: Response, user: any) => {
   );
   res.cookie('waterflow_token', token, {
     httpOnly: true, sameSite: 'none', maxAge: COOKIE_MAX_AGE,
-    secure: true,
-  });
+    secure: true, partitioned: true
+  } as any);
+  return token;
 };
 
 const formatZodErrors = (e: any): Record<string, string> => {
@@ -59,9 +60,10 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
         operationLng: data.operationLng,
       },
     });
-    setAuthCookie(res, user);
+    const token = setAuthCookie(res, user);
     res.status(201).json({
       success: true,
+      token,
       user: { id: user.id, name: user.name, email: user.email, role: user.role, phoneNumber: user.phoneNumber, isVerified: user.isVerified },
     });
   } catch (e: any) {
@@ -87,9 +89,10 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     if (!valid) {
       res.status(401).json({ success: false, errors: { password: 'Incorrect password' } }); return;
     }
-    setAuthCookie(res, user);
+    const token = setAuthCookie(res, user);
     res.json({
       success: true,
+      token,
       user: { id: user.id, name: user.name, email: user.email, role: user.role, isVerified: user.isVerified, phoneNumber: user.phoneNumber },
     });
   } catch (e: any) {
@@ -159,7 +162,7 @@ export const logoutUser = async (req: any, res: Response): Promise<void> => {
   if (req.user?.id) {
     await prisma.user.update({ where: { id: req.user.id }, data: { isOnline: false } }).catch(() => {});
   }
-  res.clearCookie('waterflow_token');
+  res.clearCookie('waterflow_token', { httpOnly: true, sameSite: 'none', secure: true, partitioned: true } as any);
   res.json({ success: true });
 };
 

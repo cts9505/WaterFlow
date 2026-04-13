@@ -8,7 +8,7 @@ export interface AuthRequest extends Request {
 }
 
 export const authenticate = (req: AuthRequest, res: Response, next: NextFunction): void => {
-  const token = req.cookies?.waterflow_token;
+  const token = req.cookies?.waterflow_token || (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.split(' ')[1] : null);
   if (!token) {
     res.status(401).json({ success: false, error: 'Not authenticated' });
     return;
